@@ -14,7 +14,8 @@ from dojo.models import Product, Product_Type, Engagement, Test, Test_Type, Find
     User, ScanSettings, Scan, Stub_Finding, Finding_Template, Notes, \
     JIRA_Issue, Tool_Product_Settings, Tool_Configuration, Tool_Type, \
     Endpoint, JIRA_PKey, JIRA_Conf, DojoMeta, Development_Environment, \
-    Dojo_User, Note_Type, System_Settings
+    Dojo_User, Note_Type, System_Settings, App_Analysis, Endpoint_Status, \
+    Sonarqube_Issue, Sonarqube_Issue_Transition, Sonarqube_Product
 
 from dojo.endpoint.views import get_endpoint_ids
 from dojo.reports.views import report_url_resolver
@@ -69,6 +70,19 @@ class EndPointViewSet(mixins.ListModelMixin,
         data = report_generate(request, endpoint, options)
         report = serializers.ReportGenerateSerializer(data)
         return Response(report.data)
+
+
+class EndpointStatusViewSet(mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      mixins.DestroyModelMixin,
+                      mixins.CreateModelMixin,
+                      viewsets.GenericViewSet):
+    serializer_class = serializers.EndpointStatusSerializer
+    queryset = Endpoint_Status.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('mitigated', 'false_positive', 'out_of_scope',
+                     'risk_accepted', 'mitigated_by', 'finding', 'endpoint')
 
 
 class EngagementViewSet(mixins.ListModelMixin,
@@ -140,6 +154,16 @@ class EngagementViewSet(mixins.ListModelMixin,
         return Response(report.data)
 
 
+class AppAnalysisViewSet(mixins.ListModelMixin,
+                        mixins.RetrieveModelMixin,
+                        mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin,
+                        mixins.CreateModelMixin,
+                        viewsets.GenericViewSet):
+    serializer_class = serializers.AppAnalysisSerializer
+    queryset = App_Analysis.objects.all()
+
+
 class FindingTemplatesViewSet(mixins.ListModelMixin,
                               mixins.RetrieveModelMixin,
                               mixins.UpdateModelMixin,
@@ -170,7 +194,7 @@ class FindingViewSet(mixins.ListModelMixin,
     queryset = Finding.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('id', 'title', 'date', 'severity', 'description',
-                     'mitigated', 'endpoints', 'test', 'active', 'verified',
+                     'mitigated', 'is_Mitigated', 'endpoints', 'test', 'active', 'verified',
                      'false_p', 'reporter', 'url', 'out_of_scope',
                      'duplicate', 'test__engagement__product',
                      'test__engagement', 'unique_id_from_tool')
@@ -315,7 +339,7 @@ class FindingViewSet(mixins.ListModelMixin,
             status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        responses={status.HTTP_200_OK: None},
+        responses={status.HTTP_200_OK: ""},
         methods=['put', 'patch'],
         request_body=serializers.TagSerializer
     )
@@ -405,6 +429,45 @@ class JiraViewSet(mixins.ListModelMixin,
     filter_fields = ('id', 'conf', 'product', 'component', 'project_key',
                      'push_all_issues', 'enable_engagement_epic_mapping',
                      'push_notes')
+
+
+class SonarqubeIssueViewSet(mixins.ListModelMixin,
+                                mixins.RetrieveModelMixin,
+                                mixins.DestroyModelMixin,
+                                mixins.UpdateModelMixin,
+                                mixins.CreateModelMixin,
+                                viewsets.GenericViewSet):
+    serializer_class = serializers.SonarqubeIssueSerializer
+    queryset = Sonarqube_Issue.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('id', 'key', 'status', 'type')
+
+
+class SonarqubeIssueTransitionViewSet(mixins.ListModelMixin,
+                        mixins.RetrieveModelMixin,
+                        mixins.DestroyModelMixin,
+                        mixins.CreateModelMixin,
+                        mixins.UpdateModelMixin,
+                        viewsets.GenericViewSet):
+    serializer_class = serializers.SonarqubeIssueTransitionSerializer
+    queryset = Sonarqube_Issue_Transition.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('id', 'sonarqube_issue', 'finding_status',
+                     'sonarqube_status', 'transitions')
+
+
+class SonarqubeProductViewSet(mixins.ListModelMixin,
+                  mixins.RetrieveModelMixin,
+                  mixins.DestroyModelMixin,
+                  mixins.UpdateModelMixin,
+                  mixins.CreateModelMixin,
+                  viewsets.GenericViewSet):
+    serializer_class = serializers.SonarqubeProductSerializer
+    queryset = Sonarqube_Product.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('id', 'product', 'sonarqube_project_key',
+                     'sonarqube_tool_config')
+
 
 
 class DojoMetaViewSet(mixins.ListModelMixin,
@@ -710,17 +773,17 @@ class ImportScanView(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         # Override CreateModeMixin to pass in push_to_jira if needed.
-        enabled = False
+        push_all_jira_issues = False
         push_to_jira = serializer.validated_data.get('push_to_jira')
         # IF JIRA is enabled and this product has a JIRA configuration
         engagement = serializer.validated_data['engagement']
         jira_config = engagement.product.jira_pkey_set.first() is not None
         if get_system_setting('enable_jira') and jira_config:
             # Check if push_all_issues is set on this product
-            enabled = engagement.product.jira_pkey_set.first().push_all_issues
+            push_all_jira_issues = engagement.product.jira_pkey_set.first().push_all_issues
 
         # If push_all_issues is set:
-        if enabled:
+        if push_all_jira_issues:
             push_to_jira = True
         serializer.save(push_to_jira=push_to_jira)
 
@@ -733,17 +796,17 @@ class ReImportScanView(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         # Override CreateModeMixin to pass in push_to_jira if needed.
-        enabled = False
+        push_all_jira_issues = False
         push_to_jira = serializer.validated_data.get('push_to_jira')
         test = serializer.validated_data['test']
         jira_config = test.engagement.product.jira_pkey_set.first() is not None
         # IF JIRA is enabled and this product has a JIRA configuration
         if get_system_setting('enable_jira') and jira_config:
             # Check if push_all_issues is set on this product
-            enabled = test.engagement.product.jira_pkey_set.first().push_all_issues
+            push_all_jira_issues = test.engagement.product.jira_pkey_set.first().push_all_issues
 
         # If push_all_issues is set:
-        if enabled:
+        if push_all_jira_issues:
             push_to_jira = True
         serializer.save(push_to_jira=push_to_jira)
 

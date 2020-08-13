@@ -10,6 +10,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.http import HttpResponse
+import django_saml2_auth.views
 
 
 from dojo import views
@@ -27,7 +28,9 @@ from dojo.api_v2.views import EndPointViewSet, EngagementViewSet, \
     ScansViewSet, StubFindingsViewSet, TestsViewSet, TestTypesViewSet, \
     ToolConfigurationsViewSet, ToolProductSettingsViewSet, ToolTypesViewSet, \
     UsersViewSet, ImportScanView, ReImportScanView, ProductTypeViewSet, DojoMetaViewSet, \
-    DevelopmentEnvironmentViewSet, NotesViewSet, NoteTypeViewSet, SystemSettingsViewSet
+    DevelopmentEnvironmentViewSet, NotesViewSet, NoteTypeViewSet, SystemSettingsViewSet, \
+    AppAnalysisViewSet, EndpointStatusViewSet, SonarqubeIssueViewSet, SonarqubeIssueTransitionViewSet, \
+    SonarqubeProductViewSet
 
 from dojo.utils import get_system_setting
 from dojo.development_environment.urls import urlpatterns as dev_env_urls
@@ -97,7 +100,9 @@ v1_api.register(BuildDetails())
 
 # v2 api written in django-rest-framework
 v2_api = DefaultRouter()
+v2_api.register(r'technologies', AppAnalysisViewSet)
 v2_api.register(r'endpoints', EndPointViewSet)
+v2_api.register(r'endpoint_status', EndpointStatusViewSet)
 v2_api.register(r'engagements', EngagementViewSet)
 v2_api.register(r'development_environments', DevelopmentEnvironmentViewSet)
 v2_api.register(r'finding_templates', FindingTemplatesViewSet)
@@ -109,6 +114,9 @@ v2_api.register(r'products', ProductViewSet)
 v2_api.register(r'product_types', ProductTypeViewSet)
 v2_api.register(r'scan_settings', ScanSettingsViewSet)
 v2_api.register(r'scans', ScansViewSet)
+v2_api.register(r'sonarqube_issues', SonarqubeIssueViewSet)
+v2_api.register(r'sonarqube_transitions', SonarqubeIssueTransitionViewSet)
+v2_api.register(r'sonarqube_product_configurations', SonarqubeProductViewSet)
 v2_api.register(r'stub_findings', StubFindingsViewSet)
 v2_api.register(r'tests', TestsViewSet)
 v2_api.register(r'test_types', TestTypesViewSet)
@@ -174,6 +182,13 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    # These are the SAML2 related URLs. You can change "^saml2_auth/" regex to
+    # any path you want, like "^sso_auth/", "^sso_login/", etc. (required)
+    url(r'^saml2/', include('django_saml2_auth.urls')),
+    # The following line will replace the default user login with SAML2 (optional)
+    # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
+    # with this view.
+    url(r'^saml2/login/$', django_saml2_auth.views.signin),
     #  tastypie api
     url(r'^%sapi/' % get_system_setting('url_prefix'), include(v1_api.urls)),
     #  Django Rest Framework API v2
