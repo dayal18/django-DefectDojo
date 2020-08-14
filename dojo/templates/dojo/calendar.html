@@ -13,15 +13,6 @@
                         <option value="tests">Tests</option>
                     </select>
                 </div>
-                <div class="col-lg-6" style="width:400px;">
-                    <select data-placeholder="All users" multiple id="lead" name="lead" class="chosen-select">
-                        <option value="0">All users</option>
-                        <option value="-1">Unassigned</option>
-                        {% for u in users %}
-                            <option value="{{ u.id }}">{{ u.username }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
                 <div class="col-lg-6">
                     <button class="btn btn-primary" type="submit">Apply</button>
                 </div>
