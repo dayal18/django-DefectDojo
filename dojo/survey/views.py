@@ -206,7 +206,7 @@ def add_survey(request, eid):
             survey.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 'Questionnaire successfully added, answers pending.',
+                                 'Questionnaire successfully added, waiting for responses.',
                                  extra_tags='alert-success')
             if 'respond_survey' in request.POST:
                 return HttpResponseRedirect(reverse(
@@ -219,7 +219,7 @@ def add_survey(request, eid):
                                  'Questionnaire could not be added.',
                                  extra_tags='alert-danger')
     form.fields["survey"].queryset = surveys
-    add_breadcrumb(title="Add Survey", top_level=False, request=request)
+    add_breadcrumb(title="Add Questionnaire", top_level=False, request=request)
     return render(request, 'defectDojo-engagement-survey/add_survey.html',
                   {'surveys': surveys,
                    'user': user,
@@ -536,7 +536,7 @@ def edit_question(request, qid):
             if reverted:
                 messages.add_message(request,
                                      messages.SUCCESS,
-                                     'REsponses associated with this questionnaire have been set to uncompleted.',
+                                     'Responses associated with this questionnaire have been set to uncompleted.',
                                      extra_tags='alert-warning')
 
             messages.add_message(request,

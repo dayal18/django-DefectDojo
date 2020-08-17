@@ -266,6 +266,7 @@ def view_finding(request, fid):
             finding.last_reviewed = new_note.date
             finding.last_reviewed_by = user
             finding.save()
+            create_notification(event='other', title='New Comment - %s by %s' % (finding.title,request.user), url=reverse("view_finding", args=(finding.id,)), icon='check')
             if finding.has_jira_issue():
                 add_comment_task(finding, new_note)
             if note_type_activation:
@@ -858,7 +859,7 @@ def request_finding_review(request, fid):
             reviewers = reviewers[:-2]
 
             create_notification(event='review_requested',
-                                title='Finding review requested',
+                                title='Review requested - %s by %s' % (finding.title, user),
                                 description='User %s has requested that users %s review the finding "%s" for accuracy:\n\n%s' % (user, reviewers, finding.title, new_note),
                                 icon='check',
                                 url=reverse("view_finding", args=(finding.id,)))
