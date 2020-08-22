@@ -255,7 +255,7 @@ def view_finding(request, fid):
         if form.is_valid():
             user_details = Dojo_User.objects.get(username=request.user)
             new_note = form.save(commit=False)
-            new_note.author = full_name
+            new_note.author = request.user
             new_note.date = timezone.now()
             new_note.save()
             history = NoteHistory(data=new_note.entry,
