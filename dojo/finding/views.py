@@ -253,8 +253,9 @@ def view_finding(request, fid):
         else:
             form = NoteForm(request.POST)
         if form.is_valid():
+            user_details = Dojo_User.objects.get(username=request.user)
             new_note = form.save(commit=False)
-            new_note.author = request.user
+            new_note.author = full_name
             new_note.date = timezone.now()
             new_note.save()
             history = NoteHistory(data=new_note.entry,
@@ -265,8 +266,8 @@ def view_finding(request, fid):
             finding.notes.add(new_note)
             finding.last_reviewed = new_note.date
             finding.last_reviewed_by = user
-            finding.save()
-            create_notification(event='other', title='New Comment - %s by %s' % (finding.title,request.user), url=reverse("view_finding", args=(finding.id,)), icon='check')
+            finding.save()            
+            create_notification(event='other', title='New Comment - %s by %s' % (finding.title,user_details.first_name), url=reverse("view_finding", args=(finding.id,)), icon='check')
             if finding.has_jira_issue():
                 add_comment_task(finding, new_note)
             if note_type_activation:
