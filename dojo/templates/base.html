@@ -158,11 +158,11 @@
                                     <ul class="nav nav-second-level">
                                       {% if request.user.is_staff %}
                                         <li>
-                                            <a href="{% url 'new_product' %}"> Add Product</a>
+                                            <a href="{% url 'product' %}"> All Product</a>
                                         </li>
                                       {% endif %}
                                         <li>
-                                            <a href="{% url 'product' %}"> All Products</a>
+                                            <a href="{% url 'new_product' %}"> Add Products</a>
                                         </li>
                                         <li>
                                             <a href="{% url 'product_type' %}">View Product Types</a>
@@ -181,10 +181,10 @@
                                     </a>
                                     <ul class="nav nav-second-level">
                                         <li>
-                                            <a href="{% url 'engagements_all' %}">All Engagements</a>
+                                            <a href="{% url 'engagement' %}">Active Engagements</a>
                                         </li>
                                         <li>
-                                            <a href="{% url 'engagement' %}">Active Engagements</a>
+                                            <a href="{% url 'engagements_all' %}">All Engagements</a>
                                         </li>
                                         <li>
                                             <a href="{% url 'test_type' %}">Test Types</a>
@@ -238,7 +238,7 @@
                                     </ul>
                                 </li>
                             {% endif %}
-                            {% if request.user.is_authenticated %}
+                            {% if request.user.is_staff %}
                             <li>
                                 <a href="{% url 'reports' %}" aria-expanded="false" aria-label="Reports">
 				                    <i class="fa fa-file-text-o fa-fw"></i>
@@ -263,10 +263,7 @@
                                     <li><a href="{% url 'product_type_counts' %}"> Product Type Counts </a></li>
                                     {% if user.is_staff %}
                                         <li><a href="{% url 'simple_metrics' %}"> Simple Metrics </a></li>
-                                        <li><a href="{% url 'engineer_metrics' %}"> Engineer Metrics </a></li>
-                                        <li><a href="{% url 'research_metrics' %}"> Security Research Metrics </a></li>
                                     {% endif %}
-                                    <li><a href="{% url 'metrics' %}?date=5&view=dashboard"> Metrics Dashboard </a></li>
                                 </ul>
                                 <!-- /.nav-second-level -->
                             </li>

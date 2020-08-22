@@ -155,7 +155,7 @@
         <div class="col-lg-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    Unassigned Answered Engagement Questionnaires
+                    Application Backlog - Pending Requests
                 </div>
                 <div class="panel-body">
                     {% if surveys %}
@@ -177,7 +177,7 @@
                                         {% if survey.engagement %}
                                             <a href="/engagement/{{ survey.engagement.id }}/questionnaire/{{ survey.id }}">{{ survey.survey.name }}</a>
                                         {% else %}
-                                            <a href="/empty_questionnaire/{{ survey.id }}">{{ survey.survey.name }}</a>
+                                            <a href="/questionnaires/{{ survey.id }}">{{ survey.survey.name }}</a>
                                         {% endif %}
                                     </td> 
                                     <td><a href="/product/{{ survey.engagement.product_id }}">{{ survey.engagement.product.name }}</a></td>
@@ -195,7 +195,7 @@
                                         {% if survey.completed %}
                                             <span class="pass_fail Pass">Completed</span>
                                         {% else %}
-                                            <span class="pass_fail">Unanswered</span>
+                                            <span class="pass_fail">Waiting</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ survey.answered_on }}</td>
@@ -208,8 +208,8 @@
                                                 href="/engagement/{{ survey.engagement.id }}/questionnaire/{{ survey.id }}/assign"> Assign User </a>
                                             {% else %}
                                                 <a class="btn btn-sm btn-primary"
-                                                href="/empty_questionnaire/{{ survey.id }}"> View Responses </a>
-                                                <a class="btn btn-sm btn-success" href="empty_questionnaire/{{ survey.id }}/new_engagement">Create Engagement</a>
+                                                href="/questionnaires/{{ survey.id }}"> View Responses </a>
+                                                <a class="btn btn-sm btn-success" href="questionnaires/{{ survey.id }}/new_engagement">Create Engagement</a>
                                                 <button class="btn btn-sm btn-info" disabled
                                                 href="/engagement/{{ survey.engagement.id }}/questionnaire/{{ survey.id }}/assign"> Assign User </button>
                                             {% endif %}
@@ -220,32 +220,14 @@
                         </table>
                     {% else %}
                         <div class="panel-body">
-                            <p>No questionnaires found.</p>
+                            <p>No Applications in Backlog</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-    <div class="row">
-        {% if punchcard %}
-            <div class="col-lg-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        Weekly activity, displayed by day, of findings you reported.*
-                    </div>
-                    <div class="panel-body">
-                        <div class="chart" id="punchcard"></div>
-                        <p class="text-center text-muted small">Week begins on date displayed.</p>
-                        <p>
-                            <br/>
-                            <span class="text-muted small">* Weeks are only displayed if findings are available.</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-    </div>
+  
 {% endblock %}
 {% block postscript %}
     <!-- Flot Charts JavaScript -->

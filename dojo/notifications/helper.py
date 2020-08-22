@@ -5,6 +5,7 @@ from dojo.models import Notifications, Dojo_User, Alerts, UserContactInfo
 from django.template.loader import render_to_string
 from django.db.models import Q, Count, Prefetch
 from django.urls import reverse
+from django.utils import timezone, dateformat
 
 logger = logging.getLogger(__name__)
 
@@ -240,10 +241,11 @@ def send_mail_notification(event, user=None, *args, **kwargs):
 def send_alert_notification(event, user=None, *args, **kwargs):
     logger.info('sending alert notification')
     try:
+        formatted_date = dateformat.format(timezone.now(), 'y-m-d H:i')
         icon = kwargs.get('icon', 'info-circle')
         alert = Alerts(
             user_id=user,
-            title=kwargs.get('title')[:100],
+            title=kwargs.get('title')[:100] + ' (' + formatted_date + ')',
             description=create_notification_message(event, user, 'alert', *args, **kwargs),
             url=kwargs.get('url', reverse('alerts')),
             icon=icon[:25],

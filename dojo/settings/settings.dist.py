@@ -757,6 +757,7 @@ DISABLE_FINDING_MERGE = env('DD_DISABLE_FINDING_MERGE')
 # ------------------------------------------------------------------------------
 # The 'Bug' issue type is mandatory, as it is used as the default choice.
 JIRA_ISSUE_TYPE_CHOICES_CONFIG = (
+    ('Defect', 'Defect'),
     ('Task', 'Task'),
     ('Story', 'Story'),
     ('Epic', 'Epic'),
